@@ -1,0 +1,84 @@
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        try {
+            compress("data_raw.txt", "compressed.txt");
+            System.out.println("Compression complete.");
+
+            decompress("data_compressed.txt", "decompressed.txt");
+            System.out.println("Decompression complete.");
+
+            System.out.println("\nContents of compressed.txt:");
+            printFile("compressed.txt");
+
+            System.out.println("\nContents of decompressed.txt:");
+            printFile("decompressed.txt");
+        } catch (IOException e) {
+            System.err.println("I/O Error: " + e.getMessage());
+        }
+    }
+
+    public static void compress(String in, String out) throws IOException {
+        FileReader reader = new FileReader(in);
+        FileWriter writer = new FileWriter(out);
+
+        int prev = reader.read();
+        // skip non-bits
+        while (prev != -1 && prev != '0' && prev != '1') {
+            prev = reader.read();
+        }
+        if (prev == -1) {
+            reader.close(); writer.close(); return;
+        }
+
+        int count = 1;
+        int curr = reader.read();
+        while (curr != -1) {
+            if (curr != '0' && curr != '1') {
+                curr = reader.read();
+                continue;
+            }
+            if (curr == prev) {
+                count = count + 1;
+            } else {
+                writer.write(count + " " + (char) prev + " ");
+                prev = curr;
+                count = 1;
+            }
+            curr = reader.read();
+        }
+
+        writer.write(count + " " + (char) prev);
+        reader.close(); writer.close();
+    }
+
+    public static void decompress(String in, String out) throws IOException {
+        Scanner scanner = new Scanner(new java.io.File(in));
+        FileWriter writer = new FileWriter(out);
+
+        while (scanner.hasNextInt()) {
+            int cnt = scanner.nextInt();
+            int bitVal = scanner.nextInt();
+            int i = 0;
+            while (i < cnt) {
+                writer.write(bitVal + '0');
+                i = i + 1;
+            }
+        }
+
+        scanner.close(); writer.close();
+    }
+
+    public static void printFile(String file) throws IOException {
+        FileReader reader = new FileReader(file);
+        int c;
+        while ((c = reader.read()) != -1) {
+            System.out.print((char) c);
+        }
+        reader.close();
+    }
+}
